@@ -68,9 +68,6 @@ class Nav2Probe(Node):
         self.index += 1
 
         self.publish_waypoints(goal.goal.pose.position.x, goal.goal.pose.position.y)
-        for publisher in self.path_pubs.values():
-            publisher.publish(Path(header=goal.goal.header))
-
         stamp = self.get_clock().now().to_msg()
         for name, client in self.planners.items():
             future = client.send_goal_async(goal)
