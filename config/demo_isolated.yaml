@@ -1,0 +1,38 @@
+version: 1
+
+production:
+  topic: /planner/cmd_vel
+
+shadow:
+  topic: /shadow/planner/cmd_vel
+  namespace: /shadow
+
+comparison:
+  type: geometry_msgs/msg/Twist
+  synchronization:
+    tolerance_ms: 30
+  metrics:
+    - name: linear_error
+      warning: 0.05
+      critical: 0.20
+    - name: direction_reversal
+      critical: 1.0
+
+# The candidate runs in its own DDS domain. Only what is listed here crosses.
+isolation:
+  production_domain: 91
+  candidate_domain: 92
+  inputs: []
+  outputs:
+    - topic: /planner/cmd_vel
+      type: geometry_msgs/msg/Twist
+      republish_as: /shadow/planner/cmd_vel
+
+safety:
+  forbidden_topics:
+    - /cmd_vel
+    - /joint_commands
+    - /hardware/*
+
+reporting:
+  period_s: 3.0

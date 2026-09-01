@@ -1,0 +1,30 @@
+version: 1
+
+production:
+  topic: /planner/cmd_vel
+
+shadow:
+  topic: /shadow/planner/cmd_vel
+  namespace: /shadow
+
+comparison:
+  type: geometry_msgs/msg/Twist
+  synchronization:
+    tolerance_ms: 20
+  metrics:
+    - name: linear_error
+      warning: 0.05
+      critical: 0.20
+    - name: angular_error
+      warning: 0.05
+    - name: direction_reversal
+      critical: 1.0
+
+safety:
+  forbidden_topics:
+    - /cmd_vel
+    - /joint_commands
+    - /hardware/*
+
+reporting:
+  period_s: 3.0
