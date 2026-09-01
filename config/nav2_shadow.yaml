@@ -1,0 +1,33 @@
+version: 1
+
+production:
+  topic: /planner/path
+
+shadow:
+  topic: /shadow/planner/path
+  namespace: /shadow
+
+comparison:
+  type: nav_msgs/msg/Path
+  synchronization:
+    tolerance_ms: 500
+  metrics:
+    - name: hausdorff_distance
+      warning: 0.30
+      critical: 1.00
+    - name: endpoint_distance
+      warning: 0.10
+      critical: 0.50
+    - name: mean_deviation
+      warning: 0.20
+    - name: length_difference
+      warning: 0.50
+
+safety:
+  forbidden_topics:
+    - /cmd_vel
+    - /joint_commands
+    - /hardware/*
+
+reporting:
+  period_s: 5.0

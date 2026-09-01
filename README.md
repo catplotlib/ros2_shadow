@@ -111,6 +111,7 @@ unmatched, so a late candidate is not recorded as a dropped one.
 | `geometry_msgs/msg/Twist` | `linear_error`, `angular_error`, `linear_x_error`, `direction_reversal` |
 | `geometry_msgs/msg/PoseStamped` | `translation_error`, `rotation_error` |
 | `trajectory_msgs/msg/JointTrajectory` | `joint_position_rmse`, `max_joint_delta`, `endpoint_delta`, `duration_delta` |
+| `nav_msgs/msg/Path` | `hausdorff_distance`, `mean_deviation`, `endpoint_distance`, `start_distance`, `length_difference` |
 
 `direction_reversal` reports 1.0 when the two commands drive opposite ways along
 x. As a magnitude, a candidate asking for -0.3 where production asks for +0.4 is
@@ -119,6 +120,13 @@ going the wrong way.
 
 Joint trajectories are aligned by joint name, since two planners need not agree
 on ordering.
+
+Paths report several shapes of difference rather than one number, because a
+large `hausdorff_distance` with a small `endpoint_distance` is a different route
+to the same place, while the reverse is the same route stopping somewhere else.
+Those are different problems. Where a comparison has no data, such as an empty
+candidate path, the metric is reported as unmeasurable rather than as zero,
+which would read as agreement.
 
 ## Output
 
@@ -153,6 +161,36 @@ $ ros2 run ros2_shadow shadow config/demo_twist.yaml
 
 The candidate tracks production, then drifts, then briefly commands the opposite
 direction.
+
+## Nav2 demo
+
+Two real Nav2 planner servers on one map and one costmap configuration,
+differing only in algorithm: NavFn as production, Smac 2D as the candidate. No
+simulator is involved; the probe supplies start poses explicitly and drives both
+servers with identical goals.
+
+```console
+$ ros2 launch ros2_shadow nav2_shadow_demo.launch.py
+$ ros2 run ros2_shadow shadow config/nav2_shadow.yaml
+```
+
+```
+ros2_shadow  /shadow/planner/path vs /planner/path
+  matched 7   unmatched prod 5   unmatched cand 0   pending 0
+  paired on header.stamp
+
+  metric                        mean       p95       max
+  endpoint_distance           0.2958    0.3900    0.3900
+  hausdorff_distance          1.9171    4.7955    4.7955
+  length_difference           0.5088    1.1071    1.1071
+  mean_deviation              0.8425    2.0047    2.0047
+
+  warnings 3   critical 4
+```
+
+The two planners route up to 4.8 m apart while finishing within 0.39 m of each
+other: the same destination by a different route. `unmatched prod 5` is its own
+result, since those are goals production answered and the candidate did not.
 
 ## Development
 

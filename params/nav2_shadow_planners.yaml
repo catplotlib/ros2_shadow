@@ -1,0 +1,79 @@
+# Two real Nav2 planner servers on the same map and the same costmap settings,
+# differing only in the planning algorithm. NavFn is production, Smac 2D is the
+# candidate under test.
+
+/production/planner_server:
+  ros__parameters:
+    expected_planner_frequency: 1.0
+    planner_plugins: ["GridBased"]
+    costmap_update_timeout: 2.0
+    GridBased:
+      plugin: "nav2_navfn_planner::NavfnPlanner"
+      tolerance: 0.5
+      use_astar: false
+      allow_unknown: true
+
+/production/global_costmap/global_costmap:
+  ros__parameters:
+    update_frequency: 1.0
+    publish_frequency: 1.0
+    global_frame: map
+    robot_base_frame: base_link
+    robot_radius: 0.22
+    resolution: 0.05
+    track_unknown_space: true
+    plugins: ["static_layer", "inflation_layer"]
+    static_layer:
+      plugin: "nav2_costmap_2d::StaticLayer"
+      map_topic: /map
+      map_subscribe_transient_local: true
+    inflation_layer:
+      plugin: "nav2_costmap_2d::InflationLayer"
+      cost_scaling_factor: 3.0
+      inflation_radius: 0.55
+    always_send_full_costmap: true
+
+/candidate/planner_server:
+  ros__parameters:
+    expected_planner_frequency: 1.0
+    planner_plugins: ["GridBased"]
+    costmap_update_timeout: 2.0
+    GridBased:
+      plugin: "nav2_smac_planner::SmacPlanner2D"
+      tolerance: 0.5
+      allow_unknown: true
+      max_iterations: 1000000
+      max_on_approach_iterations: 1000
+      max_planning_time: 2.0
+      downsample_costmap: false
+      cost_travel_multiplier: 2.0
+      use_final_approach_orientation: false
+
+/candidate/global_costmap/global_costmap:
+  ros__parameters:
+    update_frequency: 1.0
+    publish_frequency: 1.0
+    global_frame: map
+    robot_base_frame: base_link
+    robot_radius: 0.22
+    resolution: 0.05
+    track_unknown_space: true
+    plugins: ["static_layer", "inflation_layer"]
+    static_layer:
+      plugin: "nav2_costmap_2d::StaticLayer"
+      map_topic: /map
+      map_subscribe_transient_local: true
+    inflation_layer:
+      plugin: "nav2_costmap_2d::InflationLayer"
+      cost_scaling_factor: 3.0
+      inflation_radius: 0.55
+    always_send_full_costmap: true
+
+map_server:
+  ros__parameters:
+    yaml_filename: ""
+
+lifecycle_manager:
+  ros__parameters:
+    autostart: true
+    node_names: ["map_server", "/production/planner_server", "/candidate/planner_server"]
