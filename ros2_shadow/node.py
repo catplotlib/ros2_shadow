@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import statistics
 from collections import defaultdict
 
@@ -108,6 +109,13 @@ class ShadowNode(Node):
                     self.get_logger().warning(f"metric {name} failed: {exc}")
                     continue
 
+                if math.isnan(value):
+                    comparison.metrics.append(
+                        MetricResult(name, value, Severity.WARNING, None,
+                                     "nothing to compare")
+                    )
+                    continue
+
                 severity = Severity.OK
                 threshold = None
                 if spec.critical is not None and value >= spec.critical:
@@ -172,7 +180,8 @@ class ShadowNode(Node):
 
         line = (
             f"{worst.severity.name}: {worst.name} = {worst.value:.4f} "
-            f"(threshold {worst.threshold}) at t={comparison.production_stamp:.3f}"
+            f"({worst.detail or f'threshold {worst.threshold}'}) "
+            f"at t={comparison.production_stamp:.3f}"
         )
         if suppressed:
             line += f"  [+{suppressed} more since last line]"
