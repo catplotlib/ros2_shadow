@@ -172,7 +172,11 @@ servers with identical goals.
 ```console
 $ ros2 launch ros2_shadow nav2_shadow_demo.launch.py
 $ ros2 run ros2_shadow shadow config/nav2_shadow.yaml
+$ rviz2 -d rviz/nav2_shadow.rviz          # green production, red candidate
 ```
+
+RViz shows both plans on the map with the start and goal each was given, so any
+difference between them is the algorithm rather than the request.
 
 ```
 ros2_shadow  /shadow/planner/path vs /planner/path

@@ -15,6 +15,7 @@ import rclpy
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import ComputePathToPose
 from nav_msgs.msg import Path
+from visualization_msgs.msg import Marker, MarkerArray
 from rclpy.action import ActionClient
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
@@ -50,6 +51,7 @@ class Nav2Probe(Node):
             "production": self.create_publisher(Path, "/planner/path", 10),
             "candidate": self.create_publisher(Path, "/shadow/planner/path", 10),
         }
+        self.marker_pub = self.create_publisher(MarkerArray, "/shadow/waypoints", 10)
         self.create_timer(period, self.request_pair)
         self.get_logger().info("waiting for both planner servers")
 
@@ -65,10 +67,55 @@ class Nav2Probe(Node):
         goal.use_start = True
         self.index += 1
 
+        self.publish_waypoints(goal.goal.pose.position.x, goal.goal.pose.position.y)
+
         stamp = self.get_clock().now().to_msg()
         for name, client in self.planners.items():
             future = client.send_goal_async(goal)
             future.add_done_callback(lambda f, name=name, stamp=stamp: self._accepted(f, name, stamp))
+
+    def publish_waypoints(self, goal_x: float, goal_y: float) -> None:
+        """Show where each plan is measured from and to.
+
+        Both planners are given the identical pair, so any difference between
+        the paths is the algorithm rather than the request.
+        """
+        markers = MarkerArray()
+        for index, (label, (x, y), rgb) in enumerate((
+            ("START", START, (0.35, 0.85, 1.0)),
+            ("GOAL", (goal_x, goal_y), (1.0, 0.85, 0.2)),
+        )):
+            disc = Marker()
+            disc.header.frame_id = "map"
+            disc.ns = "waypoints"
+            disc.id = index * 2
+            disc.type = Marker.CYLINDER
+            disc.action = Marker.ADD
+            disc.pose.position.x, disc.pose.position.y = x, y
+            disc.pose.position.z = 0.05
+            disc.pose.orientation.w = 1.0
+            disc.scale.x = disc.scale.y = 1.2
+            disc.scale.z = 0.1
+            disc.color.r, disc.color.g, disc.color.b = rgb
+            disc.color.a = 0.95
+            markers.markers.append(disc)
+
+            text = Marker()
+            text.header.frame_id = "map"
+            text.ns = "waypoints"
+            text.id = index * 2 + 1
+            text.type = Marker.TEXT_VIEW_FACING
+            text.action = Marker.ADD
+            text.pose.position.x, text.pose.position.y = x, y + 1.6
+            text.pose.position.z = 0.2
+            text.pose.orientation.w = 1.0
+            text.scale.z = 1.4
+            text.color.r, text.color.g, text.color.b = rgb
+            text.color.a = 1.0
+            text.text = label
+            markers.markers.append(text)
+
+        self.marker_pub.publish(markers)
 
     def _accepted(self, future, name: str, stamp) -> None:
         handle = future.result()
