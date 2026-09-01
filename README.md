@@ -3,6 +3,13 @@
 Runs a candidate node beside a production node on the same live inputs, compares
 their outputs, and reports where they disagree. Only production drives the robot.
 
+![Two Nav2 planners compared live](docs/demo.gif)
+
+Two real Nav2 planners on one map, given identical goals: NavFn in green as
+production, Smac 2D in red as the candidate. The right pane is ros2_shadow
+pairing their outputs and measuring the divergence as it happens. Full clip at
+[docs/demo.mp4](docs/demo.mp4).
+
 ## Requirements
 
 * ROS 2 Jazzy
