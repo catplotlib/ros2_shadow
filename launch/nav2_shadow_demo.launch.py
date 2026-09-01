@@ -61,7 +61,13 @@ def generate_launch_description():
              name="lifecycle_manager", output="screen",
              parameters=[{
                  "autostart": True,
-                 "bond_timeout": 60.0,
+                 # Bond monitoring tears the whole stack down and rebuilds it
+                 # whenever a heartbeat is late, and under software rendering
+                 # with two costmaps and Smac planning it is late often. The
+                 # loop leaves both servers inactive for part of every cycle,
+                 # rejecting goals. Nothing here supervises a real robot, so
+                 # the bonds buy nothing.
+                 "bond_timeout": 0.0,
                  "node_names": ["map_server",
                                 "/production/planner_server",
                                 "/candidate/planner_server"],

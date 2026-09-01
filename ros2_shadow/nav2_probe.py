@@ -39,7 +39,7 @@ def pose(x: float, y: float, frame: str = "map") -> PoseStamped:
 
 
 class Nav2Probe(Node):
-    def __init__(self, period: float = 3.0):
+    def __init__(self, period: float = 4.0):
         super().__init__("nav2_probe")
         self.index = 0
 
@@ -68,6 +68,8 @@ class Nav2Probe(Node):
         self.index += 1
 
         self.publish_waypoints(goal.goal.pose.position.x, goal.goal.pose.position.y)
+        for publisher in self.path_pubs.values():
+            publisher.publish(Path(header=goal.goal.header))
 
         stamp = self.get_clock().now().to_msg()
         for name, client in self.planners.items():
@@ -82,8 +84,8 @@ class Nav2Probe(Node):
         """
         markers = MarkerArray()
         for index, (label, (x, y), rgb) in enumerate((
-            ("START", START, (0.35, 0.85, 1.0)),
-            ("GOAL", (goal_x, goal_y), (1.0, 0.85, 0.2)),
+            ("START", START, (0.15, 0.35, 1.0)),
+            ("GOAL", (goal_x, goal_y), (1.0, 0.55, 0.0)),
         )):
             disc = Marker()
             disc.header.frame_id = "map"
@@ -94,8 +96,8 @@ class Nav2Probe(Node):
             disc.pose.position.x, disc.pose.position.y = x, y
             disc.pose.position.z = 0.05
             disc.pose.orientation.w = 1.0
-            disc.scale.x = disc.scale.y = 1.2
-            disc.scale.z = 0.1
+            disc.scale.x = disc.scale.y = 1.8
+            disc.scale.z = 0.15
             disc.color.r, disc.color.g, disc.color.b = rgb
             disc.color.a = 0.95
             markers.markers.append(disc)
@@ -106,10 +108,10 @@ class Nav2Probe(Node):
             text.id = index * 2 + 1
             text.type = Marker.TEXT_VIEW_FACING
             text.action = Marker.ADD
-            text.pose.position.x, text.pose.position.y = x, y + 1.6
+            text.pose.position.x, text.pose.position.y = x, y + 2.1
             text.pose.position.z = 0.2
             text.pose.orientation.w = 1.0
-            text.scale.z = 1.4
+            text.scale.z = 2.0
             text.color.r, text.color.g, text.color.b = rgb
             text.color.a = 1.0
             text.text = label
