@@ -29,10 +29,6 @@ def generate_launch_description():
             name="planner_server",
             namespace=namespace,
             parameters=[params],
-            # A namespaced node resolves the relative "tf" topic to
-            # /<namespace>/tf and never sees the global transform tree, so the
-            # costmap waits on a transform that will never arrive. Both
-            # planners share one tree here, so point them back at it.
             remappings=[("/tf", "/tf"), ("tf", "/tf"),
                         ("/tf_static", "/tf_static"), ("tf_static", "/tf_static")],
             output="screen",
@@ -43,8 +39,6 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument("map", default_value=os.path.join(NAV2_MAPS, "warehouse.yaml")),
 
-        # The planners need a pose for the robot base. Nothing is driving, so a
-        # fixed transform is enough to let the costmaps come up.
         Node(package="tf2_ros", executable="static_transform_publisher",
              name="map_to_odom", output="log",
              arguments=["0", "0", "0", "0", "0", "0", "map", "odom"]),
@@ -61,12 +55,6 @@ def generate_launch_description():
              name="lifecycle_manager", output="screen",
              parameters=[{
                  "autostart": True,
-                 # Bond monitoring tears the whole stack down and rebuilds it
-                 # whenever a heartbeat is late, and under software rendering
-                 # with two costmaps and Smac planning it is late often. The
-                 # loop leaves both servers inactive for part of every cycle,
-                 # rejecting goals. Nothing here supervises a real robot, so
-                 # the bonds buy nothing.
                  "bond_timeout": 0.0,
                  "node_names": ["map_server",
                                 "/production/planner_server",

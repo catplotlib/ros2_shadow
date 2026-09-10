@@ -20,11 +20,6 @@ from rclpy.action import ActionClient
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 
-# Points in the warehouse map's largest connected free region, each with at
-# least 0.8 m of clearance so they survive costmap inflation. Chosen by
-# distance transform over the occupancy grid rather than by eye; picking
-# plausible-looking coordinates gave goals in occupied space and both planners
-# correctly returned nothing.
 START = (-8.47, 8.99)
 GOALS = [(-12.22, -19.90), (-9.16, -2.86), (0.71, 11.24), (14.12, 18.44)]
 
@@ -129,9 +124,6 @@ class Nav2Probe(Node):
         path = future.result().result.path
         if not path.poses:
             self.get_logger().warning(f"{name} returned an empty path")
-        # Both planners answered the same request, so both outputs carry the
-        # stamp of that request. This is the pairing key the matcher wants and
-        # the case a planner restamping with now() would deny it.
         path.header.stamp = stamp
         path.header.frame_id = "map"
         self.path_pubs[name].publish(path)

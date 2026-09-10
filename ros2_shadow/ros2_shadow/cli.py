@@ -16,7 +16,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("config", type=Path, help="shadow YAML config")
     parser.add_argument("--version", action="version", version=f"ros2_shadow {__version__}")
-    args = parser.parse_args(argv)
+    argv = sys.argv[1:] if argv is None else argv
+    args, ros_args = parser.parse_known_args(argv)
 
     if not args.config.exists():
         print(f"shadow: no such config: {args.config}", file=sys.stderr)
@@ -27,7 +28,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"shadow: bad config: {exc}", file=sys.stderr)
         return 2
 
-    return run_compare(config)
+    return run_compare(config, ros_args)
 
 
 if __name__ == "__main__":

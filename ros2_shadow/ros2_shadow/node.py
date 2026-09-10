@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import statistics
+import sys
 from collections import defaultdict
 
 import rclpy
@@ -75,7 +76,7 @@ class ShadowNode(Node):
             message_class, config.candidate_topic,
             lambda m: self.matcher.push_candidate(m, self._now()), qos)
 
-        self.divergence_pub = self.create_publisher(DiagnosticArray, "/shadow/divergence", 10)
+        self.divergence_pub = self.create_publisher(DiagnosticArray, "~/divergence", 10)
 
         self.create_timer(0.02, self._compare)
         self.create_timer(config.report_period_s, self.print_report)
@@ -256,8 +257,8 @@ def _known_types():
     return METRICS.keys()
 
 
-def run(config: ShadowConfig) -> int:
-    rclpy.init()
+def run(config: ShadowConfig, ros_args: list[str] | None = None) -> int:
+    rclpy.init(args=[sys.argv[0], *(ros_args or [])])
     node = ShadowNode(config)
     try:
         rclpy.spin(node)

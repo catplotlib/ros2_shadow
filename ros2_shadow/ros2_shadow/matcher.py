@@ -45,9 +45,6 @@ def message_stamp(message: Any, receive_time: float) -> tuple[float, str]:
 class Matcher:
     def __init__(self, tolerance_s: float, max_wait_s: float | None = None):
         self.tolerance = tolerance_s
-        # How long to hold an output before giving up on its partner. Declaring
-        # an output unmatched the moment no partner is present would call every
-        # slightly-late candidate a miss.
         self.max_wait = max_wait_s if max_wait_s is not None else max(tolerance_s * 5, 0.2)
 
         self._production: deque[Pending] = deque()
@@ -74,11 +71,6 @@ class Matcher:
             production, candidate = self._production[0], self._candidate[0]
             delta = production.stamp - candidate.stamp
 
-            # Timestamps carry nanosecond resolution, and seconds-as-float
-            # cannot represent the boundary exactly: a 20 ms tolerance against
-            # stamps 20 ms apart lands on 0.020000000000000018. Allow a
-            # nanosecond so a pair exactly at the configured tolerance matches,
-            # which is what the config says it does.
             if abs(delta) <= self.tolerance + 1e-9:
                 self._production.popleft()
                 self._candidate.popleft()
@@ -86,8 +78,6 @@ class Matcher:
                 self.matched += 1
                 continue
 
-            # The earlier of the two has no partner nearby. Its partner may
-            # still be in flight, so only retire it once it has waited.
             earlier, buffer = (
                 (production, self._production) if delta < 0 else (candidate, self._candidate)
             )

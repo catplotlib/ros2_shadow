@@ -35,6 +35,13 @@ $ colcon build --packages-select ros2_shadow_demos
 $ ros2 run ros2_shadow shadow config.yaml
 ```
 
+Unrecognised arguments are passed to rclpy, so the node namespaces and remaps
+like any other. Several can run side by side:
+
+```console
+$ ros2 run ros2_shadow shadow config.yaml --ros-args -r __ns:=/robot1
+```
+
 Launch the candidate however you normally would, with its output remapped
 somewhere production does not subscribe:
 
@@ -145,8 +152,11 @@ ros2_shadow  /shadow/planner/cmd_vel vs /planner/cmd_vel
 ```
 
 Divergence is also published as `diagnostic_msgs/DiagnosticArray` on
-`/shadow/divergence`. The process exits non-zero if any critical divergence was
-seen or if the safety scanner suspended the run.
+`~/divergence`, which resolves to `/ros2_shadow/divergence` by default and
+follows the node into any namespace you launch it in.
+
+The process exits non-zero if any critical divergence was seen, or if the safety
+scanner suspended the run.
 
 A sustained divergence produces one event per message. Repeats are counted and
 folded into a line every two seconds rather than logged individually.

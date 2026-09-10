@@ -23,9 +23,6 @@ from ros2_shadow.metrics.base import register
 TYPE = "nav_msgs/msg/Path"
 
 
-# Returned when a comparison has no data to work with. The node reports these
-# as warnings rather than folding them into the statistics, so an empty
-# candidate output cannot look like a candidate that agreed.
 UNMEASURABLE = float("nan")
 
 
