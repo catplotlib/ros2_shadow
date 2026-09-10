@@ -22,6 +22,13 @@ $ colcon build --packages-select ros2_shadow
 $ source install/setup.bash
 ```
 
+The demos live in a second package so that installing the tool does not pull in
+Nav2. To run them:
+
+```console
+$ colcon build --packages-select ros2_shadow_demos
+```
+
 ## Usage
 
 Two processes. The bridge isolates the candidate, the comparison measures it.
@@ -162,8 +169,8 @@ folded into a line every two seconds rather than logged individually.
 Without a simulator, two publishers stand in for the pair:
 
 ```console
-$ ros2 run ros2_shadow shadow_demo_pair
-$ ros2 run ros2_shadow shadow config/demo_twist.yaml
+$ ros2 run ros2_shadow_demos shadow_demo_pair
+$ ros2 run ros2_shadow shadow ros2_shadow_demos/config/demo_twist.yaml
 ```
 
 The candidate tracks production, then drifts, then briefly commands the opposite
@@ -177,9 +184,9 @@ simulator is involved; the probe supplies start poses explicitly and drives both
 servers with identical goals.
 
 ```console
-$ ros2 launch ros2_shadow nav2_shadow_demo.launch.py
-$ ros2 run ros2_shadow shadow config/nav2_shadow.yaml
-$ rviz2 -d rviz/nav2_shadow.rviz          # green production, red candidate
+$ ros2 launch ros2_shadow_demos nav2_shadow_demo.launch.py
+$ ros2 run ros2_shadow shadow ros2_shadow_demos/config/nav2_shadow.yaml
+$ rviz2 -d ros2_shadow_demos/rviz/nav2_shadow.rviz          # green production, red candidate
 ```
 
 RViz shows both plans on the map with the start and goal each was given, so any
@@ -206,5 +213,5 @@ result, since those are goals production answered and the candidate did not.
 ## Development
 
 ```console
-$ python3 -m pytest src/ros2_shadow/test -q
+$ python3 -m pytest ros2_shadow/test -q
 ```

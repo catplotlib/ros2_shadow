@@ -18,7 +18,7 @@ NAV2_MAPS = os.path.join(get_package_share_directory("nav2_bringup"), "maps")
 
 def generate_launch_description():
     params = os.path.join(
-        get_package_share_directory("ros2_shadow"), "params", "nav2_shadow_planners.yaml"
+        get_package_share_directory("ros2_shadow_demos"), "params", "nav2_shadow_planners.yaml"
     )
     map_yaml = LaunchConfiguration("map")
 
@@ -73,6 +73,6 @@ def generate_launch_description():
                                 "/candidate/planner_server"],
              }]),
 
-        Node(package="ros2_shadow", executable="nav2_probe", name="nav2_probe",
+        Node(package="ros2_shadow_demos", executable="nav2_probe", name="nav2_probe",
              output="screen"),
     ])
