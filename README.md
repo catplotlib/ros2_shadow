@@ -44,13 +44,19 @@ $ ros2 run my_package my_candidate_node --ros-args -r /planner/path:=/shadow/pla
 
 ## Keeping the candidate away from hardware
 
-The tool warns if a node under the shadow namespace publishes on a topic listed
-in `safety.forbidden_topics`, and suspends the comparison. That is a warning,
-not a guarantee: it fires after discovery, by which point a message may already
-have been sent.
+Running the candidate in its own namespace is usually enough. Topic names are
+resolved relative to it, so a node that publishes `cmd_vel` ends up on
+`/shadow/cmd_vel` without knowing anything has changed. Nav2 relies on this for
+its multi-robot configurations.
 
-For a real guarantee, run the candidate in its own `ROS_DOMAIN_ID`, where the
-hardware topics do not exist at all, and bridge the inputs it needs with
+It does not cover a node that hardcodes a leading slash, or builds a topic name
+at runtime. For those, the tool warns if a node under the shadow namespace
+publishes on a topic listed in `safety.forbidden_topics` and suspends the
+comparison, though only once the publisher appears in the graph.
+
+If you want a guarantee rather than a warning, run the candidate in its own
+`ROS_DOMAIN_ID`, where the hardware topics do not exist at all, and bridge the
+inputs it needs with
 [domain_bridge](https://github.com/ros2/domain_bridge). Nothing the candidate
 publishes can reach production unless the bridge is configured to carry it.
 

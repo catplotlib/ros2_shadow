@@ -8,9 +8,9 @@ from typing import Any
 
 import yaml
 
-# Topics a candidate must never publish on. Namespace remapping is cooperative,
-# so this is a backstop and a clear error message, not the isolation mechanism.
-# Real isolation is a separate ROS_DOMAIN_ID; see docs/isolation.md.
+# Topics a candidate must never publish on. A namespace already covers nodes
+# that use relative names; this catches the ones that hardcode an absolute topic
+# or build the name at runtime, and it reports rather than prevents.
 DEFAULT_FORBIDDEN = [
     "/cmd_vel",
     "/joint_commands",

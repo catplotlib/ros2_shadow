@@ -1,13 +1,14 @@
-"""Backstop against a candidate reaching hardware.
+"""A check on where the candidate publishes.
 
-Namespace remapping is cooperative. A node can build a topic name at runtime,
-or use a service or action instead of a topic, and remapping will not stop it.
-This module watches the graph and shouts, which is strictly weaker than the
-isolation it backs up: by the time a publisher is discovered, a message may
-already have gone out.
+Putting the candidate in a namespace handles this for nodes that use relative
+topic names, which is most of them; Nav2 relies on exactly that for its
+multi-robot configurations. The gap is a node that hardcodes a leading slash or
+builds a topic name at runtime, since a namespace does not apply to either.
 
-Run the candidate in its own ROS_DOMAIN_ID if the guarantee matters. Then the
-hardware topics do not exist in its world at all and no policy is needed.
+This scan catches that case, but only once the publisher shows up in the graph,
+so a message may already have gone out. For a guarantee rather than a warning,
+run the candidate in its own ROS_DOMAIN_ID and bridge what it needs with
+ros2/domain_bridge.
 """
 
 from __future__ import annotations
