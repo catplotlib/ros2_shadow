@@ -58,48 +58,6 @@ def test_metric_entry_without_a_name_is_rejected():
         ShadowConfig.from_dict(merged(comparison={"metrics": [{"critical": 0.3}]}))
 
 
-# -- isolation -----------------------------------------------------------
-
-def test_isolation_parses():
-    config = ShadowConfig.from_dict(merged(isolation={
-        "production_domain": 1,
-        "candidate_domain": 2,
-        "outputs": [{"topic": "/planner/cmd_vel", "type": "geometry_msgs/msg/Twist",
-                     "republish_as": "/shadow/planner/cmd_vel"}],
-    }))
-    assert config.isolation.candidate_domain == 2
-    assert config.isolation.outputs[0].republish_as == "/shadow/planner/cmd_vel"
-
-
-def test_identical_domains_are_rejected():
-    """Same domain on both sides is not isolation, it just looks like it."""
-    with pytest.raises(ConfigError, match="no isolation"):
-        ShadowConfig.from_dict(merged(isolation={
-            "production_domain": 5, "candidate_domain": 5,
-        }))
-
-
-def test_bridging_back_onto_a_forbidden_topic_is_rejected():
-    """The whole point of the bridge is that the candidate cannot reach
-    hardware. A return path onto /cmd_vel would hand it a route back."""
-    with pytest.raises(ConfigError, match="forbidden"):
-        ShadowConfig.from_dict(merged(isolation={
-            "production_domain": 1,
-            "candidate_domain": 2,
-            "outputs": [{"topic": "/planner/cmd_vel",
-                         "type": "geometry_msgs/msg/Twist",
-                         "republish_as": "/cmd_vel"}],
-        }))
-
-
-def test_bridged_entry_needs_a_type():
-    with pytest.raises(ConfigError, match="type"):
-        ShadowConfig.from_dict(merged(isolation={
-            "production_domain": 1, "candidate_domain": 2,
-            "inputs": [{"topic": "/scan"}],
-        }))
-
-
 # -- forbidden patterns --------------------------------------------------
 
 def test_forbidden_matching_handles_globs_and_exact_names():

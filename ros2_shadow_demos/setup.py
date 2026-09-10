@@ -15,7 +15,6 @@ setup(
         ("share/" + package_name + "/config", [
             "config/nav2_shadow.yaml",
             "config/demo_twist.yaml",
-            "config/demo_isolated.yaml",
         ]),
     ],
     install_requires=["setuptools"],
@@ -27,8 +26,6 @@ setup(
     entry_points={
         "console_scripts": [
             "shadow_demo_pair = ros2_shadow_demos.demo:main",
-            "shadow_demo_candidate = ros2_shadow_demos.demo:candidate_main",
-            "shadow_demo_production = ros2_shadow_demos.demo:production_main",
             "nav2_probe = ros2_shadow_demos.nav2_probe:main",
         ],
     },

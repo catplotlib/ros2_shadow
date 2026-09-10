@@ -15,12 +15,6 @@ def main(argv: list[str] | None = None) -> int:
         description="Compare a candidate node's output against production, live.",
     )
     parser.add_argument("config", type=Path, help="shadow YAML config")
-    parser.add_argument(
-        "--bridge",
-        action="store_true",
-        help="run the domain bridge instead of the comparison; this is the process "
-             "that isolates the candidate in its own ROS_DOMAIN_ID",
-    )
     parser.add_argument("--version", action="version", version=f"ros2_shadow {__version__}")
     args = parser.parse_args(argv)
 
@@ -33,10 +27,6 @@ def main(argv: list[str] | None = None) -> int:
         print(f"shadow: bad config: {exc}", file=sys.stderr)
         return 2
 
-    if args.bridge:
-        from ros2_shadow.bridge import run as run_bridge
-
-        return run_bridge(config)
     return run_compare(config)
 
 

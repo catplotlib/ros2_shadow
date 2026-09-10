@@ -31,50 +31,31 @@ $ colcon build --packages-select ros2_shadow_demos
 
 ## Usage
 
-Two processes. The bridge isolates the candidate, the comparison measures it.
-
 ```console
-$ ros2 run ros2_shadow shadow config.yaml --bridge
 $ ros2 run ros2_shadow shadow config.yaml
 ```
 
-The candidate itself is launched in the candidate domain:
+Launch the candidate however you normally would, with its output remapped
+somewhere production does not subscribe:
 
 ```console
-$ ROS_DOMAIN_ID=42 ros2 run my_package my_candidate_node
+$ ros2 run my_package my_candidate_node --ros-args -r /planner/path:=/shadow/planner/path
 ```
 
-## Isolation
+## Keeping the candidate away from hardware
 
-A candidate sharing a DDS domain with production can always reach hardware.
-Namespace remapping is cooperative: a node can build a topic name at runtime, or
-use a service or an action, and remapping does not apply. Watching the graph and
-reporting a breach happens after the message is already on the wire.
+The tool warns if a node under the shadow namespace publishes on a topic listed
+in `safety.forbidden_topics`, and suspends the comparison. That is a warning,
+not a guarantee: it fires after discovery, by which point a message may already
+have been sent.
 
-So the candidate runs in its own `ROS_DOMAIN_ID`, where the hardware topics do
-not exist. The bridge is the only route between the two domains and carries
-exactly the topics named in the config:
+For a real guarantee, run the candidate in its own `ROS_DOMAIN_ID`, where the
+hardware topics do not exist at all, and bridge the inputs it needs with
+[domain_bridge](https://github.com/ros2/domain_bridge). Nothing the candidate
+publishes can reach production unless the bridge is configured to carry it.
 
-```yaml
-isolation:
-  production_domain: 0
-  candidate_domain: 42
-  inputs:
-    - topic: /scan
-      type: sensor_msgs/msg/LaserScan
-    - topic: /odom
-      type: nav_msgs/msg/Odometry
-  outputs:
-    - topic: /planner/cmd_vel
-      type: geometry_msgs/msg/Twist
-      republish_as: /shadow/planner/cmd_vel
-```
-
-The bridge prints what crosses before it starts, and config loading refuses any
-`republish_as` that matches a forbidden topic.
-
-This covers ROS-level access. A candidate that opens a serial port or writes to
-a device node is outside its reach; use containers or user permissions there.
+Either way this covers ROS-level access only. A candidate that opens a serial
+port is a container or permissions problem.
 
 ## Configuration
 
